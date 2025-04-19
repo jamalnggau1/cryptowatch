@@ -1,0 +1,479 @@
+<!DOCTYPE html><html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Crypto Info</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f7f7f7;
+}
+
+header {
+  background: linear-gradient(to right, #1e80f7, #6ab7f9); /* Gradasi biru cerah */
+  color: white;
+  padding: 15px 20px;
+  text-align: center;
+  font-family: 'Poppins', sans-serif; /* Menggunakan font Poppins yang elegan */
+  font-size: 2rem; /* Ukuran font yang lebih kecil */
+  font-weight: 700; /* Berat font lebih tebal */
+  letter-spacing: 1px; /* Menambahkan jarak antar huruf untuk kesan modern */
+  text-transform: uppercase; /* Membuat tulisan semua huruf besar */
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Bayangan halus untuk memberikan dimensi */
+  animation: fadeIn 1.5s ease-out; /* Efek animasi fade-in */
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  background: white;
+  padding: 15px 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); /* Bayangan kotak filter */
+  border-radius: 10px;
+  margin: 20px;
+}
+
+.filters button {
+  margin: 5px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  background: #444;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.filters button:hover {
+  background: #5b5b5b;
+  transform: scale(1.05); /* Efek zoom saat hover */
+}
+
+.filters button:active {
+  background: #666;
+  transform: scale(1);
+}
+
+.filters button:hover, .filters select:hover {
+  background: #FF0000; /* Efek hover pada tombol */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.coin-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  padding: 20px;
+}
+
+.coin {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Bayangan halus */
+  margin: 15px;
+  padding: 20px;
+  width: 250px;
+  transition: all 0.3s ease;
+}
+
+.coin:hover {
+  transform: translateY(-5px); /* Efek hover pada kartu koin */
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.coin img {
+  width: 36px;
+  height: 36px;
+  vertical-align: middle;
+}
+
+.coin h3 {
+  margin: 15px 0 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.coin p {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.inline-converter input {
+  width: 100%;
+  margin-top: 15px;
+  padding: 8px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  background: #f9f9f9;
+  transition: all 0.3s ease;
+}
+
+.inline-converter input:hover {
+  border-color: #1e80f7; /* Warna biru untuk input hover */
+}
+
+.news-item {
+  background: white;
+  margin: 10px;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.loader {
+  border: 6px solid #e6eff8;
+  border-top: 6px solid #1e80f7;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1.5s linear infinite;
+  margin: 40px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+#pagination {
+  text-align: center;
+  margin: 20px;
+}
+
+#pagination button {
+  padding: 10px 15px;
+  background: #1e80f7;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#pagination button:hover {
+  background: #155c9d; /* Efek hover pada tombol pagination */
+}
+</style>
+
+  </head>
+  <body>
+    <header>
+      <h1>Crypto Info</h1>
+    </header>
+    <div class="filters">
+      <button onclick="showAll()"><span data-key="all">Semua</span></button>
+      <button onclick="filterPump()"><span data-key="pump">Pump</span></button>
+      <button onclick="filterDump()"><span data-key="dump">Dump</span></button>
+      <button onclick="filterTrending()"><span data-key="trending">Trending</span></button>
+      <button onclick="showNewTokens()"><span data-key="new">Token Baru</span></button>
+      <button onclick="loadNews()"><span data-key="news">Berita</span></button>
+      <select onchange="changeCurrencyAndLanguage(this.value)">
+        <option value="usd|en">USD (EN)</option>
+        <option value="idr|id">IDR (ID)</option>
+        <option value="eur|de">EUR (DE)</option>
+      </select>
+      <input type="text" id="searchInput" placeholder="Cari koin..." oninput="searchCoin()" style="padding: 8px 12px; border-radius: 5px; margin: 5px;" />
+    </div><div id="coins" class="coin-container"></div>
+
+<div id="pagination" style="text-align:center; margin: 20px;">
+  <button onclick="prevPage()">Prev</button>
+  <span id="pageNumber">Halaman 1</span>
+  <button onclick="nextPage()">Next</button>
+</div>
+
+<div id="news" class="news" style="display: none;"></div>
+
+<script>
+  let allCoins = [];
+  let currentView = "all";
+  let currentPage = 1;
+  let perPage = 50;
+  let totalPages = 100;
+  let displayedNews = [];
+  let cachedPump = null;
+  let cachedDump = null;
+  let currency = "usd";
+  let lang = "en";
+
+  const translations = {
+    en: { price: "Price", change: "24h", ath: "ATH", read_more: "Read more", all: "All", pump: "Pump", dump: "Dump", trending: "Trending", new: "New Tokens", news: "News", loading: "Loading...", page: "Page" },
+    id: { price: "Harga", change: "24j", ath: "ATH", read_more: "Baca Selengkapnya", all: "Semua", pump: "Pump", dump: "Dump", trending: "Trending", new: "Token Baru", news: "Berita", loading: "Memuat...", page: "Halaman" },
+    de: { price: "Preis", change: "24h", ath: "ATH", read_more: "Mehr lesen", all: "Alle", pump: "Pump", dump: "Dump", trending: "Im Trend", new: "Neue Token", news: "Nachrichten", loading: "Lädt...", page: "Seite" }
+  };
+
+  function updateButtonLabels() {
+    document.querySelectorAll("[data-key]").forEach(el => {
+      const key = el.getAttribute("data-key");
+      el.textContent = translations[lang][key];
+    });
+  }
+
+  async function fetchCoinsByPage(page = 1) {
+    const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=${currency}&order=market_cap_desc&per_page=${perPage}&page=${page}&sparkline=false&price_change_percentage=24h`;
+    const res = await fetch(url);
+    if (res.status === 200) {
+      return await res.json();
+    } else if (res.status === 429) {
+      alert("Terlalu banyak permintaan. Coba lagi nanti.");
+      return [];
+    }
+  }
+
+  async function nextPage() {
+    if (currentPage < totalPages) {
+      currentPage++;
+      allCoins = await fetchCoinsByPage(currentPage);
+      renderCurrentView();
+      updatePageNumber();
+    }
+  }
+
+  async function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      allCoins = await fetchCoinsByPage(currentPage);
+      renderCurrentView();
+      updatePageNumber();
+    }
+  }
+
+  function updatePageNumber() {
+    document.getElementById("pageNumber").innerText = `${translations[lang].page} ${currentPage}`;
+  }
+
+  function scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function togglePagination(show) {
+    document.getElementById("pagination").style.display = show ? "block" : "none";
+  }
+
+  function showCoinsOnly() {
+    document.getElementById("coins").style.display = "flex";
+    document.getElementById("news").style.display = "none";
+    document.getElementById("news").innerHTML = "";
+  }
+
+  function showNewsOnly() {
+    document.getElementById("coins").style.display = "none";
+    document.getElementById("news").style.display = "block";
+    document.getElementById("coins").innerHTML = "";
+  }
+
+  function showAll() {
+    currentView = "all";
+    showCoinsOnly();
+    togglePagination(true);
+    const container = document.getElementById("coins");
+    container.innerHTML = "";
+    allCoins.forEach(coin => container.appendChild(createCoinElement(coin)));
+    scrollToTop();
+  }
+
+  async function filterPump() {
+  currentView = "pump";
+  showCoinsOnly();
+  togglePagination(false);
+  const container = document.getElementById("coins");
+  container.innerHTML = `<div class="loader"></div>`;
+
+  let page = 1;
+  const maxPages = 100;
+  let found = false;
+  container.innerHTML = "";
+
+  while (page <= maxPages) {
+    const coins = await fetchCoinsByPage(page);
+    const pumped = coins.filter(c => c.price_change_percentage_24h >= 10);
+
+    if (pumped.length > 0) {
+      found = true;
+      pumped.forEach(coin => container.appendChild(createCoinElement(coin)));
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 500)); // kasih jeda biar ga kena rate limit
+    page++;
+  }
+
+  if (!found) {
+    container.innerHTML = `<p style="padding:10px;">Tidak ada koin pump ditemukan.</p>`;
+  }
+
+  scrollToTop();
+}
+
+  async function filterDump() {
+  currentView = "dump";
+  showCoinsOnly();
+  togglePagination(false);
+  const container = document.getElementById("coins");
+  container.innerHTML = `<div class="loader"></div>`;
+
+  let page = 1;
+  const maxPages = 100;
+  let found = false;
+  container.innerHTML = "";
+
+  while (page <= maxPages) {
+    const coins = await fetchCoinsByPage(page);
+    const dumped = coins.filter(c => c.price_change_percentage_24h <= -10);
+
+    if (dumped.length > 0) {
+      found = true;
+      dumped.forEach(coin => container.appendChild(createCoinElement(coin)));
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 500)); // kasih delay
+    page++;
+  }
+
+  if (!found) {
+    container.innerHTML = `<p style="padding:10px;">Tidak ada koin dump ditemukan.</p>`;
+  }
+
+  scrollToTop();
+}
+
+  function filterTrending() {
+    currentView = "trending";
+    showCoinsOnly();
+    togglePagination(true);
+    const sorted = [...allCoins].sort((a, b) => b.total_volume - a.total_volume).slice(0, 10);
+    const container = document.getElementById("coins");
+    container.innerHTML = "";
+    sorted.forEach(coin => container.appendChild(createCoinElement(coin)));
+    scrollToTop();
+  }
+
+  function searchCoin() {
+    const keyword = document.getElementById("searchInput").value.toLowerCase();
+    const container = document.getElementById("coins");
+    const newsBox = document.getElementById("news");
+
+    container.innerHTML = "";
+    newsBox.style.display = "none";
+    container.style.display = "flex";
+    togglePagination(true);
+
+    const filteredCoins = allCoins.filter(coin =>
+      coin.name.toLowerCase().includes(keyword) ||
+      coin.symbol.toLowerCase().includes(keyword)
+    );
+
+    if (filteredCoins.length === 0) {
+      container.innerHTML = `<p style="padding:10px;">Tidak ada koin ditemukan.</p>`;
+    } else {
+      filteredCoins.forEach(coin => container.appendChild(createCoinElement(coin)));
+    }
+  }
+
+  function showNewTokens() {
+    currentView = "new";
+    showCoinsOnly();
+    togglePagination(true);
+    const container = document.getElementById("coins");
+    container.innerHTML = `<p>${translations[lang].loading}</p>`;
+    const newCoins = allCoins.slice(-10);
+    newCoins.forEach(coin => container.appendChild(createCoinElement(coin)));
+    scrollToTop();
+  }
+
+  async function loadNews() {
+    currentView = "news";
+    showNewsOnly();
+    togglePagination(false);
+    const keywords = ['bitcoin', 'ethereum', 'blockchain'];
+    const query = keywords.join(" OR ");
+
+    const res = await fetch(`https://newsapi.org/v2/everything?q=${query}&language=${lang}&apiKey=71dee0f842b54a0e89f4d738852bdcab`);
+    const data = await res.json();
+    const newsBox = document.getElementById("news");
+    newsBox.innerHTML = "";
+
+    data.articles.slice(0, 5).forEach(article => {
+      if (!displayedNews.includes(article.url)) {
+        const div = document.createElement("div");
+        div.className = "news-item";
+        div.innerHTML = `<strong>${article.title}</strong><br><a href="${article.url}" target="_blank">${translations[lang].read_more}</a>`;
+        newsBox.appendChild(div);
+        displayedNews.push(article.url);
+      }
+    });
+
+    scrollToTop();
+  }
+
+  function createCoinElement(coin) {
+    const div = document.createElement("div");
+    div.className = "coin";
+    div.innerHTML = `
+      <h3><img src="${coin.image}" alt=""> ${coin.name} (${coin.symbol.toUpperCase()})</h3>
+      <p>${translations[lang].price}: ${formatPrice(coin.current_price)}</p>
+      <p>${translations[lang].change}: ${coin.price_change_percentage_24h?.toFixed(2)}%</p>
+      <p>${translations[lang].ath}: ${formatPrice(coin.ath)}</p>
+      <div class="inline-converter">
+        <input type="number" placeholder="Jumlah ${coin.symbol.toUpperCase()}" oninput="convertInline('${coin.id}', this.value)" />
+        <p id="convert-${coin.id}" style="margin-top: 5px;"></p>
+      </div>
+    `;
+    return div;
+  }
+
+  function convertInline(coinId, amount) {
+    const coin = allCoins.find(c => c.id === coinId);
+    const resultElement = document.getElementById(`convert-${coinId}`);
+    if (!coin || isNaN(amount) || amount === "") {
+      resultElement.textContent = "";
+      return;
+    }
+    const total = coin.current_price * parseFloat(amount);
+    resultElement.textContent = `${amount} ${coin.symbol.toUpperCase()} = ${formatPrice(total)}`;
+  }
+
+  function formatPrice(price) {
+    if (currency === "idr") return "Rp" + price.toLocaleString("id-ID");
+    if (currency === "eur") return "€" + price.toLocaleString("de-DE");
+    return "$" + price.toLocaleString("en-US");
+  }
+
+  function renderCurrentView() {
+    if (currentView === "all") showAll();
+    else if (currentView === "pump") filterPump();
+    else if (currentView === "dump") filterDump();
+    else if (currentView === "trending") filterTrending();
+    else if (currentView === "new") showNewTokens();
+    else if (currentView === "news") loadNews();
+  }
+
+  async function changeCurrencyAndLanguage(value) {
+    const [cur, lan] = value.split("|");
+    currency = cur;
+    lang = lan;
+    updateButtonLabels();
+    document.getElementById("coins").innerHTML = `<p style="padding:10px;">${translations[lang].loading}</p>`;
+    document.getElementById("news").style.display = "none";
+    document.getElementById("coins").style.display = "flex";
+    currentPage = 1;
+    allCoins = await fetchCoinsByPage(currentPage);
+    renderCurrentView();
+  }
+
+  updateButtonLabels();
+  (async () => {
+    allCoins = await fetchCoinsByPage(currentPage);
+    renderCurrentView();
+  })();
+</script>
+
+  </body>
+</html>
